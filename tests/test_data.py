@@ -18,11 +18,8 @@ class TestMullvadData(MullvadData):
 def main():
     mv = TestMullvadData('https://api.mullvad.net/www/relays/all/')
     changes = mv.test_update()
-    # if not changes:
-    #     pass
     for change in changes:
         print(change)
-    print(changes)
 
 
 if __name__ == '__main__':
