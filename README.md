@@ -15,5 +15,12 @@ If you use my discord server, the commands you use are not public, but seen by y
 
 If you're paranoid about your data, host it yourself and/or scrape the code to not even use discord at all (easily done, just discard the `bot.py`).
 
+# Contribute
+
+If you want to contribute, feel free to propose improvements and suggestions.
+
 # TODO
+- add timestamps to failures/exceptions
+- notify users feature
+- when listing existing subscriptions, flag if server/country is not found anymore
 - improve the README
