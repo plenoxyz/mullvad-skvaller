@@ -97,14 +97,14 @@ class MullvadDiff():
             action = 'added' if action == 'add' else 'removed'
             key = diff[2][0][0]
             value = diff[2][0][1]
-            list_message = f'\n - {action} `{key}` with `{value}`'
+            list_message = f'\n- {action} `{key}` with `{value}`'
 
         if action == 'change':
             action = 'changed'
             key = diff[1][1]
             old_value = diff[2][0]
             new_value = diff[2][1]
-            list_message = f'\n - {action} `{key}`' \
+            list_message = f'\n- {action} `{key}`' \
                 + f' from `{old_value}` to `{new_value}`'
 
         # if entry already exists in changes,
