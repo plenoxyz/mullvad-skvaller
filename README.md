@@ -23,4 +23,6 @@ If you want to contribute, feel free to propose improvements and suggestions.
 - add timestamps to failures/exceptions
 - notify users feature
 - when listing existing subscriptions, flag if server/country is not found anymore
-- improve the README
+- consider adding existing data to database (instead session var) so the changes survive bot downtime 
+- comment all methods that need a bit of clarity
+- improve the README?
