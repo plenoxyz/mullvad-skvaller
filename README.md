@@ -1,4 +1,4 @@
-# Mullvad Relay Tracker
+# Mullvad Skvaller
 
 Changes to the [Mullvad servers](https://mullvad.net/en/servers) are not that common, but when they do happen, it's nice to know.
 
