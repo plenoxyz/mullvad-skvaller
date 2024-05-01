@@ -127,7 +127,6 @@ class MullvadDiff():
             + (f'**{str(country_name)}**' if country_name else '') + ':' \
             + list_message
 
-        
         self.changes.append({
             'server': server,
             'country_name': country_name,
