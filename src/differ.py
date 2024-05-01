@@ -62,23 +62,25 @@ class MullvadDiff():
         Root key changes (this case) are single line messages.
         """
         server = diff[0]
-        country = str(data[server]['country_name']) \
-            if 'country_name' in data[server] else 'Undefined'
-        country_code = str(data[server]['country_code']) \
-            if 'country_code' in data[server] else 'Undefined'
-        provider = str(data[server]['provider']) \
-            if 'provider' in data[server] else 'Undefined'
-        network_port_speed = str(data[server]['network_port_speed']) + 'G' \
-            if 'network_port_speed' in data[server] else 'Undefined'
+        city_name = data[server].get('city_name')
+        country_name = data[server].get('country_name')
+        country_code = data[server].get('country_code')
+        provider = data[server].get('provider')
+        network_port_speed = data[server].get('network_port_speed')
+        owned = data[server].get('owned')
 
         message = f'**{server}** has been {action}' \
-            + (f' in **{country}**' if country != 'Undefined' else '') \
-            + (f' hosted on {provider}' if provider != 'Undefined' else '') \
-            + (f' at {network_port_speed}' if network_port_speed != 'Undefined' else '')
+            + (f' in ' if any([city_name, country_name]) else '') \
+            + (f'{str(city_name)}' if city_name else '') \
+            + (f', ' if all([city_name, country_name]) else '') \
+            + (f'**{str(country_name)}**' if country_name else '') \
+            + (f' hosted on {str(provider)}' if provider else '') \
+            + (f' at {str(network_port_speed)} Gbps' if network_port_speed else '') \
+            + (f' (owned by Mullvad)' if owned else ' (Rented)')
 
         self.changes.append({
             'server': server,
-            'country': country,
+            'country_name': country_name,
             'country_code': country_code,
             'message': message
         })
@@ -114,17 +116,21 @@ class MullvadDiff():
                 change['message'] += list_message
                 return
 
-        country = str(new_data[server]['country_name']) \
-            if 'country_name' in new_data[server] else 'Undefined'
-        country_code = str(new_data[server]['country_code']) \
-            if 'country_code' in new_data[server] else 'Undefined'
+        city_name = new_data.get(server).get('city_name')
+        country_name = new_data.get(server).get('country_name')
+        country_code = new_data.get(server).get('country_code')
+
         message = f'**{server}** changed the following values' \
-            + (f' in **{country}**:' if country != 'Undefined' else ':') \
+            + (f' in ' if any([city_name, country_name]) else '') \
+            + (f'{str(city_name)}' if city_name else '') \
+            + (f', ' if all([city_name, country_name]) else '') \
+            + (f'**{str(country_name)}**' if country_name else '') + ':' \
             + list_message
+
         
         self.changes.append({
             'server': server,
-            'country': country,
+            'country_name': country_name,
             'country_code': country_code,
             'message': message
         })
