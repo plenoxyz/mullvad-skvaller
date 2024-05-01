@@ -10,7 +10,7 @@ with open('tests/snapshots/2024-04-05.json', encoding='utf-8') as file:
 
 def main():
     mv = MullvadDiff(old_data, new_data)
-    changes = mv.get_changes()
+    changes = mv.gen_changes()
     for change in changes:
         print(change['message'], '\n')
 
