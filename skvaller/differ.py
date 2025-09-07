@@ -46,19 +46,19 @@ class MullvadDiff():
             diff for diff in diffs
             if diff[0] == 'change']
 
-        # generate the notification messages
+        # render the notification messages
         for diff in new_servers:
-            self.__gen_server_change(diff, data=self.new_data, action='added')
+            self.__render_server_change(diff, data=self.new_data, action='added')
         for diff in removed_servers:
-            self.__gen_server_change(diff, data=self.old_data, action='removed')
+            self.__render_server_change(diff, data=self.old_data, action='removed')
         for diff in changed_values:
-            self.__gen_spec_change(diff, self.new_data)
+            self.__render_spec_change(diff, self.new_data)
         
         return self.changes
 
 
-    def __gen_server_change(self, diff, data, action):
-        """Generates the server change notification message.\n
+    def __render_server_change(self, diff, data, action):
+        """Renders the server change notification message.\n
         Root key changes (this case) are single line messages.
         """
         server = diff[0]
@@ -86,8 +86,8 @@ class MullvadDiff():
         })
 
 
-    def __gen_spec_change(self, diff, new_data):
-        """Generates the server change notification message.\n
+    def __render_spec_change(self, diff, new_data):
+        """Renders the server change notification message.\n
         Server key changes (this case) are multi-line messages
         so we it might append to existing changes instead of 
         creating a new one.
