@@ -1,20 +1,20 @@
 import dictdiffer
-
+# jsondiff is an updated alternative
 
 class MullvadDiff():
     def __init__(self, old_data, new_data):
         self.changes = []
-        self.old_data = self.mv_data_to_dict(old_data)
-        self.new_data = self.mv_data_to_dict(new_data)
+        self.old_data = self.__mv_data_to_dict(old_data)
+        self.new_data = self.__mv_data_to_dict(new_data)
 
-    def mv_data_to_dict(self, data):
+    def __mv_data_to_dict(self, data) -> dict:
         """Converts the data from a list of dictionaries to
         a dictionary of dictionaries with the hostname as the
         key, so we can easily compare the data.
         """
         return { relay['hostname']: relay for relay in data }
 
-    def get_changes(self):
+    def gen_changes(self) -> list:
         """Generates the changes between the old and new data
         and calls the appropriate function to generate info needed
         for the notification and message
@@ -46,46 +46,48 @@ class MullvadDiff():
             diff for diff in diffs
             if diff[0] == 'change']
 
-        # generate the notification messages
+        # render the notification messages
         for diff in new_servers:
-            self.gen_server_change(diff, data=self.new_data, action='added')
+            self.__render_server_change(diff, data=self.new_data, action='added')
         for diff in removed_servers:
-            self.gen_server_change(diff, data=self.old_data, action='removed')
+            self.__render_server_change(diff, data=self.old_data, action='removed')
         for diff in changed_values:
-            self.gen_spec_change(diff, self.new_data)
+            self.__render_spec_change(diff, self.new_data)
         
         return self.changes
 
 
-    def gen_server_change(self, diff, data, action):
-        """Generates the server change notification message.\n
+    def __render_server_change(self, diff, data, action) -> None:
+        """Renders the server change notification message.\n
         Root key changes (this case) are single line messages.
         """
         server = diff[0]
-        country = str(data[server]['country_name']) \
-            if 'country_name' in data[server] else 'Undefined'
-        country_code = str(data[server]['country_code']) \
-            if 'country_code' in data[server] else 'Undefined'
-        provider = str(data[server]['provider']) \
-            if 'provider' in data[server] else 'Undefined'
-        network_port_speed = str(data[server]['network_port_speed']) + 'G' \
-            if 'network_port_speed' in data[server] else 'Undefined'
+        city_name = data[server].get('city_name')
+        country_name = data[server].get('country_name')
+        country_code = data[server].get('country_code')
+        provider = data[server].get('provider')
+        network_port_speed = data[server].get('network_port_speed')
+        owned = data[server].get('owned')
 
         message = f'**{server}** has been {action}' \
-            + (f' in **{country}**' if country != 'Undefined' else '') \
-            + (f' hosted on {provider}' if provider != 'Undefined' else '') \
-            + (f' at {network_port_speed}' if network_port_speed != 'Undefined' else '')
+            + (f' in ' if any([city_name, country_name]) else '') \
+            + (f'{str(city_name)}' if city_name else '') \
+            + (f', ' if all([city_name, country_name]) else '') \
+            + (f'**{str(country_name)}**' if country_name else '') \
+            + (f' hosted on {str(provider)}' if provider else '') \
+            + (f' at {str(network_port_speed)} Gbps' if network_port_speed else '') \
+            + (f' (owned by Mullvad)' if owned else ' (Rented)')
 
         self.changes.append({
             'server': server,
-            'country': country,
+            'country_name': country_name,
             'country_code': country_code,
             'message': message
         })
 
 
-    def gen_spec_change(self, diff, new_data):
-        """Generates the server change notification message.\n
+    def __render_spec_change(self, diff, new_data) -> None:
+        """Renders the server change notification message.\n
         Server key changes (this case) are multi-line messages
         so we it might append to existing changes instead of 
         creating a new one.
@@ -97,14 +99,14 @@ class MullvadDiff():
             action = 'added' if action == 'add' else 'removed'
             key = diff[2][0][0]
             value = diff[2][0][1]
-            list_message = f'\n - {action} `{key}` with `{value}`'
+            list_message = f'\n- {action} `{key}` with `{value}`'
 
         if action == 'change':
             action = 'changed'
             key = diff[1][1]
             old_value = diff[2][0]
             new_value = diff[2][1]
-            list_message = f'\n - {action} `{key}`' \
+            list_message = f'\n- {action} `{key}`' \
                 + f' from `{old_value}` to `{new_value}`'
 
         # if entry already exists in changes,
@@ -114,17 +116,20 @@ class MullvadDiff():
                 change['message'] += list_message
                 return
 
-        country = str(new_data[server]['country_name']) \
-            if 'country_name' in new_data[server] else 'Undefined'
-        country_code = str(new_data[server]['country_code']) \
-            if 'country_code' in new_data[server] else 'Undefined'
+        city_name = new_data.get(server, {}).get('city_name')
+        country_name = new_data.get(server, {}).get('country_name')
+        country_code = new_data.get(server, {}).get('country_code')
+
         message = f'**{server}** changed the following values' \
-            + (f' in **{country}**:' if country != 'Undefined' else ':') \
+            + (f' in ' if any([city_name, country_name]) else '') \
+            + (f'{str(city_name)}' if city_name else '') \
+            + (f', ' if all([city_name, country_name]) else '') \
+            + (f'**{str(country_name)}**' if country_name else '') + ':' \
             + list_message
-        
+
         self.changes.append({
             'server': server,
-            'country': country,
+            'country_name': country_name,
             'country_code': country_code,
             'message': message
         })
