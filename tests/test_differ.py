@@ -1,5 +1,5 @@
 import parent
-from src.differ import MullvadDiff
+from skvaller.differ import MullvadDiff
 from json import load
 with open('tests/snapshots/2022-01-01.json', encoding='utf-8') as file:
     old_data = load(file)

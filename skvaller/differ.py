@@ -1,5 +1,5 @@
 import dictdiffer
-
+# jsondiff is an updated alternative
 
 class MullvadDiff():
     def __init__(self, old_data, new_data):
@@ -7,14 +7,14 @@ class MullvadDiff():
         self.old_data = self.__mv_data_to_dict(old_data)
         self.new_data = self.__mv_data_to_dict(new_data)
 
-    def __mv_data_to_dict(self, data):
+    def __mv_data_to_dict(self, data) -> dict:
         """Converts the data from a list of dictionaries to
         a dictionary of dictionaries with the hostname as the
         key, so we can easily compare the data.
         """
         return { relay['hostname']: relay for relay in data }
 
-    def gen_changes(self):
+    def gen_changes(self) -> list:
         """Generates the changes between the old and new data
         and calls the appropriate function to generate info needed
         for the notification and message
@@ -57,7 +57,7 @@ class MullvadDiff():
         return self.changes
 
 
-    def __render_server_change(self, diff, data, action):
+    def __render_server_change(self, diff, data, action) -> None:
         """Renders the server change notification message.\n
         Root key changes (this case) are single line messages.
         """
@@ -86,7 +86,7 @@ class MullvadDiff():
         })
 
 
-    def __render_spec_change(self, diff, new_data):
+    def __render_spec_change(self, diff, new_data) -> None:
         """Renders the server change notification message.\n
         Server key changes (this case) are multi-line messages
         so we it might append to existing changes instead of 

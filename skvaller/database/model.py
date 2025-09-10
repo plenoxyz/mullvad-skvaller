@@ -11,7 +11,7 @@ class MongoCollection:
 class State(MongoCollection):
     def __init__(self, uri, db_name, db_collection='state'):
         super().__init__(uri, db_name, db_collection)
-        self.data = list(self.collection.find())
+        self.data = list(self.collection.find({}, {'_id': False}))
 
     def set(self, data: list) -> None:
         self.collection.delete_many({})
@@ -20,14 +20,14 @@ class State(MongoCollection):
         return
 
     def get(self) -> list:
-        return self.state
+        return self.data
 
-    def server_exists(self, server):
+    def server_exists(self, server) -> bool:
         if server in [server['hostname'] for server in self.data]:
             return True
         return False
 
-    def country_exists(self, country):
+    def country_exists(self, country) -> bool:
         if country in [server['country_name'] for server in self.data]:
             return True
         return False
@@ -42,8 +42,8 @@ class Changes(MongoCollection):
         return
 
     def get(self) -> list:
-        return list(self.collection.find())
-    
+        return list(self.collection.find({}, {'_id': False}))
+
     def remove(self, change_id) -> None:
         self.collection.delete_one({'_id': change_id})
         return
@@ -52,7 +52,7 @@ class Subscriptions(MongoCollection):
     def __init__(self, uri, db_name, db_collection='subscriptions'):
         super().__init__(uri, db_name, db_collection)
 
-    def add(self, discord_user_id: int, key: str, value: str) -> bool:
+    def add(self, discord_user_id: int, key: str, value: str) -> str:
         result = self.collection.find_one({'discord_user_id': discord_user_id, key: value})
         if result:
             return f'Subscription already exists'
@@ -76,13 +76,13 @@ class Subscriptions(MongoCollection):
             countries = [sub['country'] for sub in subscriptions if 'country' in sub]
             message = ''
             if servers:
-                message += '\nServers'
+                message += '\n- Servers'
                 for server in servers:
-                    message += f'\n- {server}'
+                    message += f'\n  - {server}'
             if countries:
-                message += '\nCountries'
+                message += '\n- Countries'
                 for country in countries:
-                    message += f'\n- {country}'
+                    message += f'\n  - {country}'
             return 'Active subscriptions:' + message
         return 'No active subscriptions found'
 

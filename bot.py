@@ -1,18 +1,16 @@
-from typing import Optional
-from typing import Literal
-import discord.ext
-import discord.ext.tasks
-
-import time
 import discord
-# from skvaller import bot_logger
 import logging
+import discord.ext.tasks
+from typing import Literal
+from argparse import ArgumentParser
 from os import getenv
+from time import sleep
+from json import load as json_load
+from urllib.request import urlopen
 
-import skvaller.database.model as database
+from skvaller.differ import MullvadDiff
+from skvaller.database import model as database
 
-
-import argparse
 
 logging.basicConfig(
     level=logging.INFO,
@@ -33,32 +31,77 @@ class MyClient(discord.Client):
         await self.tree.sync(guild=MY_GUILD)
 
 
-def argument_parser():
-    parser = argparse.ArgumentParser()
+def argument_parser() -> ArgumentParser:
+    parser = ArgumentParser()
     parser.add_argument('--discord-token', type=str, default=getenv('DISCORD_TOKEN'))
+    parser.add_argument('--url', type=str, default=getenv('API_URL'))
     parser.add_argument('--db-uri', type=str, default=getenv('DB_URI'))
     parser.add_argument('--db-name', type=str, default=getenv('DB_NAME'))
     parser.add_argument('--guild-id', type=int, default=int(getenv('GUILD_ID')))
     parser.add_argument('--all-changes-channel-id', type=int, default=getenv('ALL_CHANGES_CHANNEL_ID'))
     return parser.parse_args()
 
+def get_api_data(url: str) -> list:
+    response = urlopen(url)
+    data = json_load(response)
+    if response.code != 200:
+        logging.error(f'API call failed with HTTP response {response}')
+        return []
+    if len(data) < 100:
+        logging.error('API responded with less than 100 items')
+        return []
+    return data
 
-def main():
+def update_data(url: str, state: database.State, changes: database.Changes) -> bool:
+    new_data = get_api_data(url)
+    if not new_data:
+        logging.error('Skipping update')
+        return False
+    cur_data = state.get()
+
+    logging.debug('Calculating changes')
+    try:
+        new_changes = MullvadDiff(cur_data, new_data).gen_changes()
+    except Exception as e:
+        # stack trace
+        logging.error(f'Error calculating changes: {e}')
+        return False
+    if new_changes:
+        logging.info(f'Changes detected')
+        changes.add(changes)
+    else:
+        logging.debug(f'No changes detected')
+        return False
+    logging.debug('Updating state')
+    state.set(new_data)
+    return True
+
+def main() -> None:
     args = argument_parser()
     client = MyClient(intents=discord.Intents.default(), guild_id=args.guild_id)
     state = database.State(args.db_uri, args.db_name)
     changes = database.Changes(args.db_uri, args.db_name)
     subscriptions = database.Subscriptions(args.db_uri, args.db_name)
 
-    @discord.ext.tasks.loop(minutes=1)
+    if not state.get():
+        logging.info('Fetching initial data from API...')
+        data = get_api_data(args.url)
+        if not data:
+            logging.error('Failed to fetch initial data, exiting')
+            return
+        state.set(data)
+
+    @discord.ext.tasks.loop(minutes=3)
     async def notify_changes(channel: discord.TextChannel):
-        logging.info("Checking for changes...")
-        changes_list = changes.get()
-        for change in changes_list:
+        logging.debug("Checking for changes...")
+        if not update_data(args.url, state, changes):
+            return
+        for change in changes.get():
             # notify server channel
             if channel:
                 logging.info(f"Notifying channel")
                 await channel.send(change['message'])
+                sleep(0.25)  # to avoid rate limiting
             # notify users
             users = subscriptions.get_by_type(
                 server=change['server'],
@@ -67,12 +110,10 @@ def main():
                 logging.info(f"Notifying user {user}")
                 try:
                     user_obj = await client.fetch_user(user)
-                    if user_obj:
-                        await user_obj.send(change['message'])
+                    await user_obj.send(change['message'])
+                    sleep(0.25)  # to avoid rate limiting
                 except Exception as e:
                     logging.error(e)
-                time.sleep(0.33)
-            # remove change from db
             changes.remove(change['_id'])
 
     @client.tree.command()
