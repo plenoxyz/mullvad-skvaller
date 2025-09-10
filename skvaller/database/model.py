@@ -42,7 +42,7 @@ class Changes(MongoCollection):
         return
 
     def get(self) -> list:
-        return list(self.collection.find({}, {'_id': False}))
+        return list(self.collection.find({}))
 
     def remove(self, change_id) -> None:
         self.collection.delete_one({'_id': change_id})
