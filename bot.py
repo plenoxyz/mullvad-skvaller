@@ -4,10 +4,9 @@ import discord.ext.tasks
 from typing import Literal
 from argparse import ArgumentParser
 from os import getenv
-from time import sleep
+from time import sleep, time
 from json import load as json_load
 from urllib.request import urlopen
-
 from skvaller.differ import MullvadDiff
 from skvaller.database import model as database
 
@@ -63,17 +62,15 @@ def update_data(url: str, state: database.State, changes: database.Changes) -> b
     try:
         new_changes = MullvadDiff(cur_data, new_data).gen_changes()
     except Exception as e:
-        # stack trace
         logging.error(f'Error calculating changes: {e}')
         return False
     if new_changes:
-        logging.info(f'Changes detected')
+        logging.info(f'New {len(new_changes)} changes detected')
         changes.add(new_changes)
+        logging.debug('Updating state')
+        state.set(new_data)
     else:
         logging.debug(f'No changes detected')
-        return False
-    logging.debug('Updating state')
-    state.set(new_data)
     return True
 
 def main() -> None:
@@ -115,6 +112,7 @@ def main() -> None:
                 except Exception as e:
                     logging.error(e)
             changes.remove(change['_id'])
+        await channel.edit(topic=f'Last check: <t:{int(time())}:F>')
 
     @client.tree.command()
     @discord.app_commands.describe(type='Adds a subscription')
