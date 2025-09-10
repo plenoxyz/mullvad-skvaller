@@ -76,11 +76,11 @@ class Subscriptions(MongoCollection):
             countries = [sub['country'] for sub in subscriptions if 'country' in sub]
             message = ''
             if servers:
-                message += '\n- Servers'
+                message += '\n - Servers'
                 for server in servers:
                     message += f'\n  - {server}'
             if countries:
-                message += '\n- Countries'
+                message += '\n - Countries'
                 for country in countries:
                     message += f'\n  - {country}'
             return 'Active subscriptions:' + message

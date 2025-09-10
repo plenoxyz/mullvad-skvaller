@@ -116,9 +116,9 @@ class MullvadDiff():
                 change['message'] += list_message
                 return
 
-        city_name = new_data.get(server).get('city_name')
-        country_name = new_data.get(server).get('country_name')
-        country_code = new_data.get(server).get('country_code')
+        city_name = new_data.get(server, {}).get('city_name')
+        country_name = new_data.get(server, {}).get('country_name')
+        country_code = new_data.get(server, {}).get('country_code')
 
         message = f'**{server}** changed the following values' \
             + (f' in ' if any([city_name, country_name]) else '') \
