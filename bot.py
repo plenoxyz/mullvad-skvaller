@@ -38,6 +38,7 @@ def argument_parser() -> ArgumentParser:
     parser.add_argument('--db-name', type=str, default=getenv('DB_NAME'))
     parser.add_argument('--guild-id', type=int, default=int(getenv('GUILD_ID')))
     parser.add_argument('--all-changes-channel-id', type=int, default=getenv('ALL_CHANGES_CHANNEL_ID'))
+    parser.add_argument('--update-rate', type=int, default=getenv('UPDATE_RATE', 5))
     return parser.parse_args()
 
 def get_api_data(url: str) -> list:
@@ -88,7 +89,7 @@ def main() -> None:
             return
         state.set(data)
 
-    @discord.ext.tasks.loop(minutes=3)
+    @discord.ext.tasks.loop(minutes=args.update_rate)
     async def notify_changes(channel: discord.TextChannel):
         logging.debug("Checking for changes...")
         if not update_data(args.url, state, changes):
