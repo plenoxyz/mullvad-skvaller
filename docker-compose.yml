@@ -1,0 +1,7 @@
+services:
+  skvaller:
+    container_name: skvaller
+    image: ghcr.io/plenoxyz/mullvad-skvaller:main
+    env_file:
+      - .env.prd
+    restart: unless-stopped
