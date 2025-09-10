@@ -68,7 +68,7 @@ def update_data(url: str, state: database.State, changes: database.Changes) -> b
         return False
     if new_changes:
         logging.info(f'Changes detected')
-        changes.add(changes)
+        changes.add(new_changes)
     else:
         logging.debug(f'No changes detected')
         return False
