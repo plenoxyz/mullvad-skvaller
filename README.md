@@ -18,7 +18,7 @@ You can join [my own discord server](https://discord.gg/Xztjxs6H7X) for this, or
 
 This project is not affiliated with Mullvad in any way, it's a personal project that I made for myself.
 
-If you use my discord server, the commands you use are only seen by you, the bot and probably discord. Info provided by you (with the `/subscribe` command) is stored in a database associated with your discord user ID (check the [model.py](skvaller/database/model.py)). If you wish to have all your data removed from my database, you can use the `/purge_me` command. If `/list` doesn't show any subscription, no data is stored associated with you.
+If you use my discord server, the commands you use are only seen by you, the bot and probably Discord. Info provided by you (with the `/subscribe` command) is stored in a database associated with your discord user ID (check the [model.py](skvaller/database/model.py)). If you wish to have all your data removed from my database, you can use the `/purge_me` command. If `/list` doesn't show any subscription, no data is stored associated with you.
 
 # Contribute
 
