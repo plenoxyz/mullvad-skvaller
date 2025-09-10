@@ -62,7 +62,7 @@ class Subscriptions(MongoCollection):
         else:
             return 'Failed to add subscription'
 
-    def remove(self, discord_user_id: str, key: str, value: str) -> str:
+    def remove(self, discord_user_id: int, key: str, value: str) -> str:
         result = self.collection.find_one_and_delete({'discord_user_id': discord_user_id, key: value})
         if result:
             return 'Removed subscription'
